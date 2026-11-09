@@ -16,6 +16,7 @@ const reviewTests=[
  {id:'manual',task:7,label:'По руководству можно выполнить все функции; скриншоты соответствуют программе',why:'Общие описания без конкретных действий не позволяют повторить работу.',fix:'Для каждой функции укажи исходное состояние, действия, ожидаемый результат и реальный скриншот.',retry:'Пройди руководство с чистого запуска без дополнительных объяснений, включая исправление ошибки подключения.',legacy:26}
 ];
 const reviewExpected={
+ enterprise:{cost1:418.75,cost2:185,cost3:468.25,order1:5112.5,order2:9365,order3:45217.5,count:2,quantity:35,total:14477.5,remaining:1},
  furniture:{cost1:2130,cost2:3160,cost3:1705,order1:5965,order2:3160,order3:5115,count:2,quantity:4,total:9125,remaining:1},
  bakery:{cost1:183,cost2:261,cost3:180,order1:2352,order2:900,order3:783,count:2,quantity:17,total:3252,remaining:1},
  print:{cost1:25.5,cost2:105,cost3:11,order1:3600,order2:550,order3:2100,count:2,quantity:160,total:4150,remaining:1}
@@ -44,7 +45,7 @@ async function loadSubmission(i,input){
 }
 function reviewNumericInputs(i){
  if(!reviewExpected[examState.variant])return '<p>У официального образца нет единого числового эталона для твоих собственных тестовых данных. Сверь расчёт вручную и укажи результат проверки выше.</p>';
- return '<h3>Фактические результаты твоей базы</h3><p>Для исходных данных выбранного авторского варианта, без дополнительных заказов. Изделия идут в порядке спецификаций. Пустое поле означает «не проверено». Можно использовать точку или запятую.</p>'+reviewNumberFields.filter(f=>f[2]===i).map(([key,label])=>'<label class="checkrow" for="number-'+key+'">'+esc(label)+'<br><input id="number-'+key+'" type="text" inputmode="decimal" value="'+esc(examState.numbers[key]??'')+'" oninput="reviewNumber(\''+key+'\',this.value)"></label>').join('');
+ return '<h3>Фактические результаты твоей базы</h3><p>Для исходных данных выбранного варианта, без дополнительных заказов. Изделия идут в порядке спецификаций. Пустое поле означает «не проверено». Можно использовать точку или запятую.</p>'+reviewNumberFields.filter(f=>f[2]===i).map(([key,label])=>'<label class="checkrow" for="number-'+key+'">'+esc(label)+'<br><input id="number-'+key+'" type="text" inputmode="decimal" value="'+esc(examState.numbers[key]??'')+'" oninput="reviewNumber(\''+key+'\',this.value)"></label>').join('');
 }
 /* Mask comments and string literals, preserving character offsets for honest line references. */
 function maskSource(source,csharp=false){
@@ -107,7 +108,7 @@ function collectReview(data){
   if(key.startsWith('order'))why='Сумма заказа = сумма по позициям (количество изделий × себестоимость единицы).';
   if(['count','quantity','total'].includes(key))why='Отчёт должен считать заказы, единицы продукции и суммы раздельно, только за заданный месяц; JOIN не должен повторять сумму заказа.';
   if(key==='remaining')why='После переноса двух заказов архивного месяца должен остаться один заказ следующего месяца.';
-  add(task,'mismatch',label,why,'Сверь промежуточные суммы и границы периода с документами варианта. Не меняй ответ только ради совпадения — найди расхождение в запросе.','Выполни запрос повторно на исходном наборе данных и обнови это поле.',task===5?'dates':'calc',{actual:n,expected:expected[key],source:'Сравнение с контрольными данными авторского варианта'});
+  add(task,'mismatch',label,why,'Сверь промежуточные суммы и границы периода с документами варианта. Не меняй ответ только ради совпадения — найди расхождение в запросе.','Выполни запрос повторно на исходном наборе данных и обнови это поле.',task===5?'dates':'calc',{actual:n,expected:expected[key],source:'Сравнение с контрольными данными варианта'});
  }
  return {at:Date.now(),variant:data.variant,findings,compared,matched,testsPassed,testsTotal:reviewTests.length,codeTasks:Object.values(sub).filter(v=>String(v).trim()).length};
 }

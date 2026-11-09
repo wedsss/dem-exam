@@ -96,3 +96,5 @@ function memoryAdvance(){
   shell('<h1>Урок пройден</h1><p>Ты написала код по условию и применила его в другой задаче. Следующее повторение — '+new Date(r.due).toLocaleDateString('ru-RU')+'. Оно начнётся с пустого редактора.</p><button class="primary" onclick="memoryHub()">К урокам на запоминание</button>');
 }
 if(location.hash==='#memory') memoryHub();
+
+if(location.hash==='#exam') examHub();
