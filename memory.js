@@ -35,16 +35,18 @@ const memoryLessons = [
 function memoryRecords() {
   return sqlProgress.memory || (sqlProgress.memory = {});
 }
-function memoryHub() {
+let memoryFilter;
+function memoryHub(language) {
+  memoryFilter=language;
   examMode = false;
   const records = memoryRecords();
-  const cards = memoryLessons.map(unit => {
+  const cards = memoryLessons.filter(unit => !language || unit.lang===language).map(unit => {
     const r = records[unit.id];
     const due = r?.due && r.due <= Date.now();
     const status = r?.due ? (due ? 'Пора повторить' : 'Повторить ' + new Date(r.due).toLocaleDateString('ru-RU')) : r ? 'Начато' : '';
     return '<article class="card"><small>'+ (unit.lang==='sql'?'SQL':'C#') +' · '+status+'</small><h3>'+unit.title+'</h3><button onclick="memoryOpen(\''+unit.id+'\')">'+(due?'Повторить по памяти':r?.stage?'Продолжить':'Открыть урок')+'</button></article>';
   });
-  shell('<button onclick="home()">← Мой маршрут</button><h1>Код по памяти</h1><p>Начни с одной темы. Разбери пример, восстанови пропуск, затем закрой образец и реши две задачи. После прохождения вернись через день.</p><div class="cards">'+cards.join('')+'</div>');
+  shell('<button onclick="home()">← Мой маршрут</button><h1>Код по памяти'+(language==='cs'?' · C#':language==='sql'?' · SQL':'')+'</h1><p>Начни с одной темы. Разбери пример, восстанови пропуск, затем закрой образец и реши две задачи. После прохождения вернись через день.</p><div class="cards">'+cards.join('')+'</div>');
 }
 let activeMemory;
 function memoryOpen(id) {
@@ -62,7 +64,7 @@ function memoryRender() {
   const pair=u.pairs[stage===3 ? (r.swap?0:1) : stage===2 && r.swap ? 1 : 0];
   const code=stage===1?pair[1].replace(u.piece,'____'):pair[1];
   const heading=['Разбери образец','Восстанови пропуск','Напиши с чистого листа','Реши на других данных'][stage];
-  shell('<button onclick="memoryHub()">← Код по памяти</button><h1>'+u.title+'</h1><section class="panel"><small>Шаг '+(stage+1)+' из 4</small><h2>'+heading+'</h2><p>'+esc(pair[0])+'</p>'+
+  shell('<button onclick="memoryHub(memoryFilter)">← Код по памяти</button><h1>'+u.title+'</h1><section class="panel"><small>Шаг '+(stage+1)+' из 4</small><h2>'+heading+'</h2><p>'+esc(pair[0])+'</p>'+
     (stage<2?'<pre data-language="'+u.lang+'">'+esc(code)+'</pre>':'')+
     (stage===0?'<p>'+esc(u.why)+'</p><button class="primary" onclick="memoryAdvance()">Скрыть образец и попробовать</button>':
     '<label for="memoryInput">'+(stage===1?'Введи только пропущенную часть':'Набери весь код самостоятельно')+'</label><textarea id="memoryInput" spellcheck="false" data-language="'+u.lang+'">'+esc(r.draft||'')+'</textarea><button class="primary" id="memoryCheck">Проверить</button> <button id="memoryHint">Подсказка</button><p id="memoryMessage" role="status"></p>')+'</section>');
@@ -93,7 +95,7 @@ function memoryAdvance(){
   if(r.stage<4){saveSql();memoryRender();return;}
   if(!r.due||Date.now()>=r.due){r.due=Date.now()+[1,3,7][Math.min(r.round||0,2)]*86400000;r.round=(r.round||0)+1;}
   saveSql();
-  shell('<h1>Урок пройден</h1><p>Ты написала код по условию и применила его в другой задаче. Следующее повторение — '+new Date(r.due).toLocaleDateString('ru-RU')+'. Оно начнётся с пустого редактора.</p><button class="primary" onclick="memoryHub()">К урокам на запоминание</button>');
+  shell('<h1>Урок пройден</h1><p>Ты написала код по условию и применила его в другой задаче. Следующее повторение — '+new Date(r.due).toLocaleDateString('ru-RU')+'. Оно начнётся с пустого редактора.</p><button class="primary" onclick="memoryHub(memoryFilter)">К урокам на запоминание</button>');
 }
 if(location.hash==='#memory') memoryHub();
 

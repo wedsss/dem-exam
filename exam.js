@@ -110,7 +110,7 @@ home();
 
 function orderReportPractice() {
   examMode = false;
-  shell(`<button onclick="guide()">← План подготовки</button>
+  shell(`<button onclick="sqlLesson(&quot;group&quot;)">← GROUP BY и HAVING</button>
   <p class="tag">Недели 1–2 · первый шаг к заданию 5</p>
   <h1>Самостоятельно собрать один отчёт</h1>
   <p>Ты уже видела GROUP BY. Теперь начни с задачи словами: магазин хочет узнать, кто сделал хотя бы два заказа. Одна строка исходных данных — один заказ. Одна строка ответа — один клиент.</p>
