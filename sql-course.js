@@ -176,41 +176,73 @@ unit('calc','report','Вычисления и CASE',
 'Результат 5 / 2 с целыми операндами?',['2.5','2','3'],1,'Целочисленное деление отбрасывает дробную часть.',
 'Выведи Quantity * UnitPrice как LineTotal из dbo.OrderLines.','SELECT Quantity * UnitPrice AS LineTotal FROM dbo.OrderLines;','Между множителями знак *.','Для работ это часы × тариф; для материалов — расход × цена единицы. Проверь единицы измерения.');
 
-unit('design','design','Из текста в сущности и связи',
-['Выпиши объекты из документов и определи, что означает одна строка каждого. Клиент, заказ и позиция заказа — разные сущности.','Свойство должно зависеть от ключа своей таблицы. Адрес клиента относится к клиенту; количество товара в заказе — к позиции заказа.','Многие-ко-многим оформляют связующей таблицей. Заказ содержит много товаров, товар встречается в разных заказах.'],
-'Customers(CustomerID, CustomerName)\nOrders(OrderID, CustomerID, OrderDate)\nProducts(ProductID, ProductName)\nOrderLines(OrderID, ProductID, Quantity)',
-['Заказ ссылается на клиента.','Позиция связывает заказ и товар.','Количество зависит от пары заказ–товар.'],
-'Клиент 1 → N заказов; заказы M ↔ N товары через позиции.',
-'Список товаров через запятую в одной ячейке мешает проверять связи и считать позиции.',
-'Где количество товара в заказе?',['Customers','Products','OrderLines'],2,'Количество зависит от товара в конкретном заказе.',
-'Студент посещает много курсов, курс посещают многие студенты. Назови связь: многие-ко-многим.','многие-ко-многим','Нужна связующая Enrollments.','Нарисуй связи новой предметной области до написания CREATE TABLE.');
+unit("design",
+"design",
+"Из текста в сущности и связи",
+["В задании 4 нужно превратить документы производства в таблицы и показать их связи на ER-диаграмме. Прочитай фразу «клиент оформил заказ из нескольких изделий». Спроси себя, что означает одна строка в каждом списке.", "В Customers строка описывает клиента. В CustomerOrders строка описывает заказ целиком. Если клиент оформил три заказа, CustomerID повторится в трёх заказах. Сам клиент записан один раз.", "Первичный ключ (PK) различает строки таблицы. Внешний ключ (FK) ссылается на строку другой таблицы. На диаграмме соедини PK клиента с FK заказа. У клиента поставь «1», у заказов — «много».", "Для перечня изделий нужна OrderItems. У каждой позиции есть свой OrderItemID, ссылка на заказ, ссылка на изделие и количество. Заказ с двумя разными изделиями даёт две позиции."],
+"Customers:      CustomerID (PK), CustomerName\nCustomerOrders: OrderID (PK), CustomerID (FK), OrderDate\nOrderItems:     OrderItemID (PK), OrderID (FK), ProductID (FK), Quantity, UnitPrice\nProducts:       ProductID (PK), ProductName",
+["Найди заказ по OrderID.", "Найди все позиции с этим OrderID.", "В каждой позиции ProductID ведёт к названию изделия в Products."],
+"Заказ 12: 5 корпусов и 2 панели → один заказ, две позиции, семь единиц продукции.",
+"Если записать два изделия в одну ячейку, каждому будет трудно назначить своё количество.",
+"Где хранить число панелей именно в заказе 12?",
+["Products", "OrderItems", "Customers"],
+1,
+"Quantity описывает конкретную позицию заказа.",
+"Какой столбец позиции ведёт к заказу? Введи имя.",
+"OrderID",
+"Ищи номер документа, которому принадлежит позиция.",
+"");
 
-unit('normal','design','Три нормальные формы',
-['1НФ: одно значение в ячейке, никаких повторяющихся групп Товар1, Товар2, Товар3.','2НФ: неключевые свойства зависят от всего составного ключа. Количество позиции зависит от (OrderID, ProductID); имя товара зависит только от ProductID и хранится в Products.','3НФ: неключевые свойства не определяются через другие неключевые свойства. Данные клиента хранятся у клиента, заказ содержит ссылку. Исторический адрес доставки может быть отдельным фактом заказа, если это требует условие.'],
-'Orders(OrderID, CustomerID, OrderDate)\nCustomers(CustomerID, CustomerName, City)',
-['В заказе ссылка.','Данные клиента один раз.','Город не нужно исправлять в каждом заказе.'],
-'Пять заказов одного клиента → одна запись его имени в Customers.',
-'Не выноси каждое поле в отдельную таблицу без анализа зависимостей.',
-'Что не нужно повторять в каждой позиции?',['Количество','ProductID','Название товара'],2,'Название зависит от товара, а не позиции.',
-'Какой ключ связывает Orders с Customers в примере?','CustomerID','Это внешний ключ заказа.','Объясни зависимости между преподавателем, группой и занятием. Не копируй схему производства.');
+unit("normal",
+"design",
+"Три нормальные формы",
+["Начни с накладной. В одной строке записано «корпус, панель» и рядом «5, 2». Для 1НФ у каждого поля должно быть одно значение. Раздели запись на две позиции. Теперь у каждой есть свой ProductID и своё Quantity.", "Для 2НФ проверь таблицу с составным ключом. В ProductMaterials пара (ProductID, MaterialID) определяет норму расхода. Один и тот же болт может требоваться в разных количествах для разных изделий. Его название зависит только от MaterialID. Поэтому название хранится в Materials.", "Для 3НФ проверь, не описывает ли столбец другой объект через промежуточный идентификатор. В заказе OrderID определяет CustomerID, а CustomerID определяет текущее имя клиента. Храни имя в Customers. Заказ получит его по ссылке.", "Проверка на бумаге: клиент сменил название. Если название хранится у клиента, достаточно исправить одну запись. Все его заказы по-прежнему связаны с ним по CustomerID."],
+"До:    CustomerOrders(OrderID, OrderDate, CustomerID, CustomerName)\nПосле: CustomerOrders(OrderID, OrderDate, CustomerID)\n       Customers(CustomerID, CustomerName)",
+["Определи, что означает строка заказа.", "Спроси, может ли один клиент появиться в разных заказах.", "Вынеси сведения о клиенте в справочник и оставь ссылку."],
+"Три заказа одного клиента → три номера заказа и одна запись с именем клиента.",
+"Количество материала для изделия нужно хранить у пары «изделие — материал». В справочнике материалов потеряется различие между нормами.",
+"Что зависит от всей пары ProductID и MaterialID?",
+["Название материала", "Норма расхода", "Название изделия"],
+1,
+"Норма говорит, сколько данного материала требуется для данного изделия.",
+"В какую таблицу вынести текущее имя клиента?",
+"Customers",
+"Вспомни справочник, где одна строка означает одного клиента.",
+"");
 
-unit('create','design','CREATE TABLE и ограничения',
-['PRIMARY KEY однозначно определяет строку. IDENTITY выдаёт номера, но само по себе не заменяет первичный ключ.','NOT NULL требует значение; CHECK проверяет правило; UNIQUE запрещает повтор; REFERENCES проверяет существование родительской строки.','Сначала создавай и заполняй родительские таблицы, затем дочерние.'],
-'CREATE TABLE dbo.Books (\n BookID int IDENTITY PRIMARY KEY,\n Title nvarchar(100) NOT NULL,\n Price decimal(10,2) NOT NULL CHECK (Price >= 0)\n);',
-['Запятые разделяют столбцы.','Последняя строка без запятой.','NOT NULL и CHECK решают разные задачи.'],
-'Цена -1 → отказ; 0 → разрешено; NULL → отказ.',
-'CHECK без NOT NULL не запрещает отсутствие значения.',
-'Что запрещает NULL?',['IDENTITY','NOT NULL','AS'],1,'NOT NULL делает поле обязательным.',
-'Напиши CHECK, разрешающий Quantity строго больше нуля.','CHECK (Quantity > 0)','Ноль не включается.','Ограничения выводятся из условий нового задания.');
+unit("create",
+"design",
+"CREATE TABLE и ограничения",
+["По диаграмме из задания 4 напиши скрипт создания базы. Начни со справочника, на который позже будут ссылаться другие таблицы. В примере ниже одна строка — одно изделие.", "Для каждого столбца укажи имя и тип. int подходит для целого номера. nvarchar(100) хранит название длиной до 100 символов. Для цены в этой базе используется decimal(10,2) с двумя знаками после запятой.", "IDENTITY поручает серверу выдавать номер при добавлении. PRIMARY KEY делает его уникальным идентификатором. NOT NULL требует заполнить поле. NULL разрешает пропустить описание.", "В дочерних таблицах REFERENCES проверяет существование родителя, а CHECK проверяет условие для значения. Например, для количества нужны и NOT NULL, и CHECK (Quantity > 0). Проверь три случая: 5, 0 и NULL."],
+"CREATE TABLE dbo.Products (\n    ProductID int IDENTITY PRIMARY KEY,\n    ProductName nvarchar(100) NOT NULL,\n    Description nvarchar(500) NULL\n);",
+["После CREATE TABLE укажи схему и имя таблицы.", "Внутри скобок перечисли столбцы через запятую.", "При вставке изделия укажи название. Номер выдаст сервер, описание можно оставить пустым."],
+"Изделие с названием и без описания можно добавить. Строку с NULL вместо названия сервер отклонит.",
+"Перед созданием внешнего ключа создай таблицу, на которую он ссылается.",
+"Как потребовать заполнения ProductName?",
+["IDENTITY", "NOT NULL", "DEFAULT"],
+1,
+"NOT NULL запрещает отсутствующее значение.",
+"Напиши проверку, разрешающую строго положительное Quantity.",
+"CHECK (Quantity > 0)",
+"Ноль тоже нужно отклонить.",
+"");
 
-unit('write','design','INSERT, UPDATE, DELETE',
-['INSERT добавляет строку: значения должны соответствовать списку столбцов. IDENTITY обычно пропускают.','UPDATE меняет строки через SET, DELETE удаляет. WHERE ограничивает затронутые записи.','Перед изменением проверь SELECT с тем же WHERE. Для обучения используй отдельную базу и транзакцию с откатом.'],
-"INSERT INTO dbo.Books(Title, Price) VALUES (N'Атлас', 500);\nUPDATE dbo.Books SET Price = 550 WHERE BookID = 1;",
-['INSERT создаёт строку.','SET задаёт значение.','WHERE выбирает строку по ключу.'],
-'Книга 1 меняет цену на 550, остальные существующие книги не меняются.',
-'UPDATE без WHERE меняет все строки; DELETE без WHERE удаляет все строки.',
-'UPDATE без WHERE затронет:',['Первую строку','Все строки','Ни одной'],1,'Без фильтра множество изменений не ограничено.',
-'Установи Price = 700 для BookID = 3 в dbo.Books.','UPDATE dbo.Books SET Price = 700 WHERE BookID = 3;','UPDATE таблица SET значение WHERE условие;','Используй уникальный ключ новой сущности, а не имя человека.');
+unit("write",
+"design",
+"INSERT, UPDATE, DELETE",
+["После создания схемы в задании 4 заполни каждую таблицу минимум тремя тестовыми строками. Начинай со справочников. Чтобы добавить позицию заказа, сначала нужны существующие заказ и изделие.", "В INSERT INTO перечисли столбцы, в VALUES поставь значения в том же порядке. Для русского текста используй N перед строкой в одинарных кавычках. Номер IDENTITY сервер создаст сам.", "Чтобы исправить строку, сначала выбери её через SELECT с условием по ключу. Перенеси это условие в UPDATE. После SET укажи только изменяемые поля.", "DELETE удаляет строки, попавшие под WHERE. Для тренировки в SSMS выполняй изменения в учебной копии. BEGIN TRANSACTION и ROLLBACK позволяют посмотреть результат и вернуть прежние данные."],
+"BEGIN TRANSACTION;\nSELECT * FROM dbo.Materials WHERE MaterialID = 4;\nUPDATE dbo.Materials SET PricePerUnit = 6 WHERE MaterialID = 4;\nSELECT * FROM dbo.Materials WHERE MaterialID = 4;\nROLLBACK;",
+["В примере Конечныйрез.sql материал 4 — болт М8 по цене 5.", "Второй SELECT внутри транзакции покажет цену 6.", "После ROLLBACK повтори SELECT. Цена снова будет 5."],
+"Проверяются и новое значение, и число затронутых строк. При изменении одной записи по ключу ожидается одна строка.",
+"UPDATE или DELETE без WHERE затронет все строки таблицы.",
+"Что нужно проверить перед UPDATE по MaterialID?",
+["Что SELECT с тем же WHERE находит нужную строку", "Что в базе нет заказов", "Что цена равна нулю"],
+0,
+"Так ты заранее видишь запись, которую изменишь.",
+"В dbo.Materials установи PricePerUnit = 7 для MaterialID = 4.",
+"UPDATE dbo.Materials SET PricePerUnit = 7 WHERE MaterialID = 4;",
+"Сначала новое значение через SET, затем ключ через WHERE.",
+"");
 
 unit('parameter','exam','Переменные, параметры, цикл',
 ['DECLARE объявляет переменную, её имя начинается с @. SET присваивает значение. Тип задаёт допустимые операции.','WHILE повторяет BEGIN…END, пока условие истинно. Счётчик обязательно изменять.','Параметры меняют входные данные без переписывания алгоритма. В C# используй SqlParameter для значений пользователя. Имена объектов требуют отдельного формирования с QUOTENAME.'],
@@ -305,7 +337,7 @@ function sqlCatalog(){examMode=false;shell('<span class="tag">Полный SQL-�
 function sqlLesson(id){
  const u=sqlCourse.find(x=>x.id===id)||sqlCourse[0];sqlCurrent=u.id;sqlProgress.last=u.id;saveSql();examMode=false;
  const p=sqlProgress.answers[u.id]||{},i=sqlCourse.indexOf(u);
- shell('<button onclick="sqlCatalog()">← SQL-маршрут</button><p class="tag">Урок '+(i+1)+' / '+sqlCourse.length+' · '+sqlModules.find(m=>m[0]===u.module)[1]+'</p><h1>'+esc(u.title)+'</h1><button onclick="memoryHub(&quot;sql&quot;)">Код по памяти · SQL</button>'+(u.id==='group'?'<button onclick="orderReportPractice()">Собрать отчёт в SSMS</button>':'')+(typeof memoryLessons!=='undefined' && memoryLessons.some(m=>m.id===u.id)?'<button onclick="memoryOpen(&quot;'+u.id+'&quot;)">Отработать тему по памяти</button>':'')+'<div class="panel"><h2>1. Сначала пойми смысл</h2>'+u.theory.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div><div class="panel"><h2>2. Прочитай пример по частям</h2><pre data-language="sql">'+esc(u.example)+'</pre><ol>'+u.lines.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol><h3>Какой результат ожидаем</h3><pre class="result">'+esc(u.result)+'</pre><div class="feedback"><b>Частая ошибка</b><br>'+esc(u.mistake)+'</div></div><div class="panel"><h2>3. Проверь понимание '+(p.concept?'✓':'')+'</h2><p>'+esc(u.question)+'</p><div class="row">'+u.choices.map((t,n)=>'<button onclick="sqlConcept('+n+')">'+esc(t)+'</button>').join('')+'</div><div id="concept-feedback" role="status"></div></div><div class="panel"><h2>4. Напиши сам '+(p.code?'✓':'')+'</h2><p>'+esc(u.task)+'</p><label for="sql-answer">Твой SQL или короткий ответ</label><textarea data-language="sql" id="sql-answer" spellcheck="false" placeholder="Набери ответ, не копируя пример"></textarea><div class="row"><button class="primary" onclick="sqlCheck()">Проверить</button><button onclick="sqlHint()">Подсказка</button></div><div id="sql-feedback" role="status"></div><details><summary>Показать эталон и объяснение</summary><pre data-language="sql">'+esc(u.answer)+'</pre><p>'+esc(u.hint)+'</p><p>Закрой эталон и повтори по памяти, затем поменяй условие. Просмотр ответа сам по себе не отмечает урок пройденным.</p></details><small>Проверка по учебному шаблону: пробелы и регистр команд не важны. Эквивалентный SQL с другой структурой может не распознаться. Для проверки выполнения используй SSMS.</small></div>'+(u.id==='table'?firstOrderPractice():['join','left'].includes(u.id)?joinPracticePanel(u.id):'<div class="panel"><h2>5. Перенеси навык на новую тему</h2><p>'+esc(u.transfer)+'</p><label for="sql-note">Объясни свой подход и запиши результат проверки в SSMS</label><textarea id="sql-note" oninput="sqlNote(this.value)" placeholder="Какие таблицы нужны? Как проверить ответ?">'+esc(sqlProgress.notes[u.id]||'')+'</textarea><small>Это самостоятельная практика. Запись в дневнике не означает, что решение проверено.</small></div>')+'<div class="row">'+(i?'<button onclick="sqlLesson(\''+sqlCourse[i-1].id+'\')">← Предыдущий</button>':'')+(i<sqlCourse.length-1?'<button onclick="sqlLesson(\''+sqlCourse[i+1].id+'\')">Следующий →</button>':'<button onclick="exam()">Перейти к репетиции КИМа →</button>')+'</div>');
+ shell('<button onclick="sqlCatalog()">← SQL-маршрут</button><p class="tag">Урок '+(i+1)+' / '+sqlCourse.length+' · '+sqlModules.find(m=>m[0]===u.module)[1]+'</p><h1>'+esc(u.title)+'</h1><button onclick="memoryHub(&quot;sql&quot;)">Код по памяти · SQL</button>'+(u.id==='group'?'<button onclick="orderReportPractice()">Собрать отчёт в SSMS</button>':'')+(typeof memoryLessons!=='undefined' && memoryLessons.some(m=>m.id===u.id)?'<button onclick="memoryOpen(&quot;'+u.id+'&quot;)">Отработать тему по памяти</button>':'')+'<div class="panel"><h2>1. Сначала пойми смысл</h2>'+u.theory.map(t=>'<p>'+esc(t)+'</p>').join('')+'</div><div class="panel"><h2>2. Прочитай пример по частям</h2><pre data-language="sql">'+esc(u.example)+'</pre><ol>'+u.lines.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ol><h3>Какой результат ожидаем</h3><pre class="result">'+esc(u.result)+'</pre><div class="feedback"><b>Частая ошибка</b><br>'+esc(u.mistake)+'</div></div><div class="panel"><h2>3. Проверь понимание '+(p.concept?'✓':'')+'</h2><p>'+esc(u.question)+'</p><div class="row">'+u.choices.map((t,n)=>'<button onclick="sqlConcept('+n+')">'+esc(t)+'</button>').join('')+'</div><div id="concept-feedback" role="status"></div></div><div class="panel"><h2>4. Напиши сам '+(p.code?'✓':'')+'</h2><p>'+esc(u.task)+'</p><label for="sql-answer">Твой SQL или короткий ответ</label><textarea data-language="sql" id="sql-answer" spellcheck="false" placeholder="Набери ответ, не копируя пример"></textarea><div class="row"><button class="primary" onclick="sqlCheck()">Проверить</button><button onclick="sqlHint()">Подсказка</button></div><div id="sql-feedback" role="status"></div><details><summary>Показать эталон и объяснение</summary><pre data-language="sql">'+esc(u.answer)+'</pre><p>'+esc(u.hint)+'</p><p>Закрой эталон и повтори по памяти, затем поменяй условие. Просмотр ответа сам по себе не отмечает урок пройденным.</p></details><small>Проверка по учебному шаблону: пробелы и регистр команд не важны. Эквивалентный SQL с другой структурой может не распознаться. Для проверки выполнения используй SSMS.</small></div>'+(u.module==='design'?designPracticePanel(u.id):u.id==='table'?firstOrderPractice():['join','left'].includes(u.id)?joinPracticePanel(u.id):'<div class="panel"><h2>5. Перенеси навык на новую тему</h2><p>'+esc(u.transfer)+'</p><label for="sql-note">Объясни свой подход и запиши результат проверки в SSMS</label><textarea id="sql-note" oninput="sqlNote(this.value)" placeholder="Какие таблицы нужны? Как проверить ответ?">'+esc(sqlProgress.notes[u.id]||'')+'</textarea><small>Это самостоятельная практика. Запись в дневнике не означает, что решение проверено.</small></div>')+'<div class="row">'+(i?'<button onclick="sqlLesson(\''+sqlCourse[i-1].id+'\')">← Предыдущий</button>':'')+(i<sqlCourse.length-1?'<button onclick="sqlLesson(\''+sqlCourse[i+1].id+'\')">Следующий →</button>':'<button onclick="exam()">Перейти к репетиции КИМа →</button>')+'</div>');
 }
 function sqlNote(v){sqlProgress.notes[sqlCurrent]=v;saveSql();}
 function sqlConcept(n){const u=sqlCourse.find(u=>u.id===sqlCurrent),ok=n===u.correct,p=sqlProgress.answers[u.id]||{};p.concept=ok;p.mistake=!ok||!!p.mistake;if(ok&&p.code)p.mistake=false;sqlProgress.answers[u.id]=p;saveSql();document.getElementById('concept-feedback').innerHTML='<div class="feedback '+(ok?'ok':'')+'">'+(ok?'✓ Верно. ':'Попробуй ещё раз. ')+esc(u.why)+'</div>';}
