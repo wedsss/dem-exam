@@ -59,7 +59,7 @@ function joinPracticePanel(topic) {
       <details><summary>Подсказка</summary><p>${esc(ex.hint)}</p></details>
       <details><summary>Сверить результат и решение</summary><pre class="result">${esc(ex.result)}</pre><p>Строки могут идти в другом порядке.</p><pre data-language="sql">${esc(ex.query)}</pre></details></article>`;
   }).join('');
-  return `<section class="panel"><h2>5. Самостоятельная практика</h2><p>Во всех трёх задачах используй эти учебные строки. Таблицы названы как в EnterpriseDB. Буквы c и o — короткие имена таблиц в запросе.</p>
+  return `<section class="panel"><h2>5. Самостоятельная практика</h2><button onclick="queryLab(${topic==='left'?5:3})">Из условия в код · выполнить запрос</button><p>Во всех трёх задачах используй эти учебные строки. Таблицы названы как в EnterpriseDB. Буквы c и o — короткие имена таблиц в запросе.</p>
     <h3>dbo.Customers · клиенты</h3><pre class="result">CustomerID   CustomerName
 7            Анна
 4            Олег
