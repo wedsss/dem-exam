@@ -100,3 +100,6 @@ function memoryAdvance(){
 if(location.hash==='#memory') memoryHub();
 
 if(location.hash==='#exam') examHub();
+
+if (location.hash === '#inner-join') sqlLesson('join');
+if (location.hash === '#left-join') sqlLesson('left');

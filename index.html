@@ -52,6 +52,6 @@ function guide(){examMode=false;shell('<h1>От уроков к экзамену
 function exportProgress(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(state)],{type:'application/json'}));a.download='dem-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 async function importProgress(input){try{let s=JSON.parse(await input.files[0].text());if(!Array.isArray(s.done)||!Array.isArray(s.wrong)||![...s.done,...s.wrong].every(i=>Number.isInteger(i)&&i>=0&&i<lessons.length))throw Error();state={done:[...new Set(s.done)],wrong:[...new Set(s.wrong)],last:Number.isInteger(s.last)&&s.last>=0&&s.last<lessons.length?s.last:0};save();home()}catch{alert('Не удалось прочитать прогресс. Выберите JSON, скачанный из этого тренажёра.')}}
 home();
-</script><script src="kim-data.js"></script><script src="sql-course.js"></script><script src="exam.js"></script><script src="exam-review.js"></script><script src="syntax-colours.js"></script><script src="memory.js"></script></html>
+</script><script src="kim-data.js"></script><script src="sql-course.js"></script><script src="exam.js"></script><script src="exam-review.js"></script><script src="syntax-colours.js"></script><script src="join-practice.js"></script><script src="memory.js"></script></html>
 
 
